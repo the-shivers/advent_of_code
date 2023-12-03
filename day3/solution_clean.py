@@ -1,14 +1,14 @@
 def get_full_number(x, y):
     l_coord = r_coord = x
-    while l_coord > MIN_X and lines[y][l_coord - 1].isdigit():
+    while l_coord > MINX and lines[y][l_coord - 1].isdigit():
         l_coord -= 1
-    while r_coord < MAX_X and lines[y][r_coord + 1].isdigit():
+    while r_coord < MAXX and lines[y][r_coord + 1].isdigit():
         r_coord += 1
     return {(l_coord, y): int(lines[y][l_coord:r_coord + 1])}
 
 def analyze_part(part):
-    for x in range(max(part['x'] - 1, MIN_X), min(part['x'] + 2, MAX_X + 1)):
-        for y in range(max(part['y'] - 1, MIN_Y), min(part['y'] + 2, MAX_Y + 1)):
+    for x in range(max(part['x'] - 1, MINX), min(part['x'] + 2, MAXX + 1)):
+        for y in range(max(part['y'] - 1, MINY), min(part['y'] + 2, MAXY + 1)):
             if lines[y][x].isdigit():
                 part['nums'].update(get_full_number(x, y))
 
@@ -16,8 +16,8 @@ with open('advent_of_code_2023/day3/input.txt') as file:
     lines = [line.strip() for line in file]
 
 NON_SYMBOLS = set('1234567890.')
-MIN_X, MIN_Y = 0, 0
-MAX_X, MAX_Y = len(lines[0]) - 1, len(lines) - 1
+MINX, MINY = 0, 0
+MAXX, MAXY = len(lines[0]) - 1, len(lines) - 1
 
 unique_part_nums = {}
 gears = []
