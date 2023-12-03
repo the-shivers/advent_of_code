@@ -2,7 +2,7 @@ from math import prod
 
 def get_max_dict(game):
     turn_dicts = []
-    for turn_str in game.split(': ')[1].split('; '):
+    for turn_str in game.split(': ')[1].split('; '): # e.g. '9 red, 5 blue'
         turn_dict = {}
         for qty_color_str in turn_str.split(', '):
             qty, color = qty_color_str.split()
