@@ -1,4 +1,4 @@
-file_loc = 'C:/Users/Brian/advent_of_code_2023/day2/input.txt'
+file_loc = 'advent_of_code_2023/day2/input.txt'
 with open(file_loc, 'r') as file:
     lines = [line.strip() for line in file]
     
