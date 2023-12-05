@@ -4,7 +4,7 @@ with open(input_txt) as file:
     signal = file.readline().strip()
 
 for i, char in enumerate(signal):
-    if i <= 2:
+    if i < 3:
         continue
     if len(set(signal[i-4:i])) == 4:
         break
@@ -12,7 +12,7 @@ for i, char in enumerate(signal):
 print("Pt 1:", i) # 1896
 
 for i, char in enumerate(signal):
-    if i <= 12:
+    if i < 13:
         continue
     if len(set(signal[i-14:i])) == 14:
         break
