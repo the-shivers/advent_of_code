@@ -162,10 +162,20 @@ sts_map = [
 ]
 
 #sts updated
-# [0, 49],
-# [52, 99], 
-# [50, 51],
-# [100, 999999999999999]]
+# [0, 49] 0,
+# [52, 99] 2, 
+# [50, 51] -48,
+# [100, 999999999999999]] 0
+
+# Overlaps between updated and stf
+# [0, 14] 39
+# [15, 49] -15
+# [50-51] -63 => 98-99
+# [52-53] -13 => 50-51
+# [54-99] 2 => 52-97
+# 100 0
+
+# Translate back
 
 stf_map = [
     [0, 14, [39]],
@@ -182,8 +192,82 @@ stf_map = [
 # (98-99): -63 (35, 36)
 # (100): 0 (100, 100)
 
+# Do we just get all beginnings and all ends?
+[0, 15, 50, 52, 54, 100]
+[14, 49, 51, 53, 99 ,99999999]
+# then pair?
+[[0, 14]], 
 
-sts_map_updated = []
-for rng in sts_map:
-    sts_map_updated.append([rng[0] + rng[2][0], rng[1] + rng[2][0]])
-    # Now that they're both in soil mode, 
+nu_starts = 
+seed_rng = sts_map[0]
+soil_rng = [seed_rng[0] + seed_rng[2][0], seed_rng[1] + seed_rng[2][0]]
+for i in stf_map:
+    
+        
+def update_map(old_map, new_map):
+    old_updated = []
+    for i in old_map:
+        old_updated.append([
+            i[0] + i[2][0], i[1] + i[2][0], i[2]
+        ])
+    print(old_map)
+    print(old_updated)
+    print(new_map)
+    starts = sorted(list(set([i[0] for i in old_updated + new_map])))
+    ends = sorted(list(set([i[1] for i in old_updated + new_map])))
+    print(starts)
+    print(ends)
+    new_map_untranslated = []
+    for i in range(len(starts)):
+        builder = [starts[i], ends[i], [0]]
+        for j in old_updated:
+            if starts[i] >= j[0] and ends[i] <= j[1]: #within 
+                builder[2][0] += j[2][0]
+        for j in new_map:
+            if starts[i] >= j[0] and ends[i] <= j[1]: #within 
+                builder[2][0] += j[2][0]
+        new_map_untranslated += [builder]
+    for i in range(len(new_map_untranslated)):
+        for j in old_updated:
+            if new_map_untranslated[i][0] >= j[0] and new_map_untranslated[i][1] <= j[1]:
+                new_map_untranslated[i][0] -= j[2][0]
+                new_map_untranslated[i][1] -= j[2][0]
+                break
+    return new_map_untranslated
+
+def to_classic(new_map_style):
+    classic = []
+    for row in new_map_style:
+        builder = []
+        builder.append(row[0] + row[2][0])
+        builder.append(row[0])
+        builder.append(row[1]-row[0]+1)
+        classic.append(builder)
+    return classic
+
+def to_new(classic_map_style):
+    new = []
+    for row in classic_map_style:
+        builder = []
+        builder.append(row[1])
+        builder.append(row[1] + row[2] - 1)
+        builder.append([row[0] - row[1]])
+        new.append(builder)
+    return new
+        
+sts_map = [[50, 98, 2], [52, 50, 48]]
+stf_map = [[0, 15, 37], [37, 52, 2], [39, 0, 15]]
+seed_to_fert_map = [
+    [39, 0, 15],
+    [0, 15, 35],
+    [37, 50, 2],
+    [54, 52, 46],
+    [35, 98, 2],
+] # Tested, it works  
+
+
+new_sts_map = to_new(sts_map)
+new_stf_map = to_new(stf_map)
+combine = update_map(sts_map, stf_map) #wtf... requires min and max intervals? todo
+
+
