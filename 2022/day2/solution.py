@@ -1,4 +1,6 @@
-with open('advent_of_code/2022/day2/input.txt') as file:
+# example_txt = 'advent_of_code/2022/day2/example.txt'
+input_txt = 'advent_of_code/2022/day2/input.txt'
+with open(input_txt) as file:
     lines = [line.strip() for line in file]
     
 e = {'A': 'rock', 'B': 'paper', 'C': 'scissors'}
