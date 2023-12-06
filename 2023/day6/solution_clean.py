@@ -19,8 +19,8 @@ print("Part 1:", ways) # 5133600
 time = int("".join(lines[0].split()[1:]))
 distance = int("".join(lines[1].split()[1:]))
 
-ways = 0
 for ms in range(time + 1):
-    ways += 1 if (time - ms) * ms > distance else 0
+    if (time - ms) * ms > distance:
+        break
 
-print("Part 2:", ways) # 40651271, in about 6 seconds
+print("Part 2:", time - 2 * ms + 1) # 40651271
