@@ -77,6 +77,7 @@ for y, row in enumerate(grid):
     for x in range(len(row)):
         score = calculate_scenic_score(x, y, grid)
         if score > max_score:
+            best = (x, y)
             max_score = score
              
 print('Part 2:', max_score) # 517440
