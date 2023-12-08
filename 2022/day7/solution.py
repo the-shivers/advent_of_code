@@ -35,7 +35,6 @@ def sum_nested_dict(d):
     recurse(d, '')
     return sum_dict
         
-
 cursor = ['/']
 struct = {'/': {}}
 files_only = {}
