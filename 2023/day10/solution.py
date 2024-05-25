@@ -1,6 +1,3 @@
-filepath = 'example.txt'
-# filepath = 'input.txt'
-
 pipes = {
     '|': ('north', 'south'),
     '-': ('east', 'west'),
@@ -15,6 +12,8 @@ def get_puzzle(filepath: str) -> list:
     with open(filepath) as lines:
         return [line.strip() for line in lines]
 
+
+# Part 1
 
 def get_direction(current_loc: tuple, prev_loc: tuple) -> str:
     """
@@ -35,7 +34,6 @@ def get_direction(current_loc: tuple, prev_loc: tuple) -> str:
     else:
         return 'west' if x_change > 0 else 'east'
     
-
 def get_start_direction(start_loc: tuple, puzzle: list) -> str:
     # check north (directions that touch south)
     if start_loc[1] > 0 and puzzle[start_loc[1] - 1][start_loc[0]] in ('|', '7', 'F'):
@@ -49,7 +47,6 @@ def get_start_direction(start_loc: tuple, puzzle: list) -> str:
     # check west (directions that touch east)
     if start_loc[0] > 0 and puzzle[start_loc[1]][start_loc[0] - 1] in ('-', 'L', 'F'):
         return 'west'
-
 
 def navigate_step(current_loc: tuple, prev_loc: tuple, puzzle: list, pipes: dict) -> tuple:
     # Identify next direction to move in
@@ -83,14 +80,12 @@ def navigate_step(current_loc: tuple, prev_loc: tuple, puzzle: list, pipes: dict
     else:
         raise Exception(f'next_direction = {next_direction} not a valid direction!')
     
-    
 def find_start(puzzle: list) -> tuple:
     for y, row in enumerate(puzzle):
         for x, symbol in enumerate(row):
             if symbol == 'S':
                 return (x, y)
             
-
 def solve_part_1(filepath: str, max_steps: int = 100000) -> int:
     puzzle = get_puzzle(filepath)
     current_location = find_start(puzzle)
@@ -98,31 +93,17 @@ def solve_part_1(filepath: str, max_steps: int = 100000) -> int:
     previous_location, current_location = current_location, navigate_step(current_location, previous_location, puzzle, pipes)
     counter = 1
     while puzzle[current_location[1]][current_location[0]] != 'S':
-        print(f'prev: {previous_location}, curr: {current_location}, symb: {puzzle[current_location[1]][current_location[0]]}')
         previous_location, current_location = current_location, navigate_step(current_location, previous_location, puzzle, pipes)
         counter += 1
         if counter >= max_steps:
             break
     return int(float(counter) / 2)
 
-def solve_part_1_debug(filepath: str, max_steps: int = 100000) -> int:
-    puzzle = get_puzzle(filepath)
-    new_puzzle = [list(i) for i in puzzle]
-    current_location = find_start(new_puzzle)
-    previous_location = ()
-    previous_location, current_location = current_location, navigate_step(current_location, previous_location, new_puzzle, pipes)
-    counter = 1
-    while new_puzzle[current_location[1]][current_location[0]] != 'S':
-        if new_puzzle[previous_location[1]][previous_location[0]] != 'S':
-            new_puzzle[previous_location[1]][previous_location[0]] = counter
-        print(f'prev: {previous_location}, curr: {current_location}, symb: {new_puzzle[current_location[1]][current_location[0]]}')
-        previous_location, current_location = current_location, navigate_step(current_location, previous_location, new_puzzle, pipes)
-        counter += 1
-        if counter >= max_steps:
-            break
-    return int(float(counter) / 2), new_puzzle
+
+# Part 2
 
 def solve_part_1_with_extras(filepath: str, max_steps: int = 100000) -> int:
+    """Returns a list representing the symbol and coordinates of each item in the path."""
     puzzle = get_puzzle(filepath)
     new_puzzle = [list(i) for i in puzzle]
     current_location = find_start(new_puzzle)
@@ -131,7 +112,6 @@ def solve_part_1_with_extras(filepath: str, max_steps: int = 100000) -> int:
     counter = 1
     path_list = [('S', previous_location), (new_puzzle[current_location[1]][current_location[0]], current_location)]
     while new_puzzle[current_location[1]][current_location[0]] != 'S':
-        print(f'prev: {previous_location}, curr: {current_location}, symb: {new_puzzle[current_location[1]][current_location[0]]}')
         previous_location, current_location = current_location, navigate_step(current_location, previous_location, new_puzzle, pipes)
         path_list.append((new_puzzle[current_location[1]][current_location[0]], current_location))
         counter += 1
@@ -139,16 +119,8 @@ def solve_part_1_with_extras(filepath: str, max_steps: int = 100000) -> int:
             break
     return int(float(counter) / 2), path_list
 
-
-
-solve_part_1('example.txt')
-solve_part_1('example2.txt')
-solve_part_1('input.txt') # 6762 (too low), 6763 (too low), 6768 (correct)
-
-
-solution, path_list = solve_part_1_with_extras("input.txt")
-
 def get_clean_puzzle(puzzle, path_list):
+    """Kind of a stupid function that rebuilds the puzzle, substituting all non-path coordinates with an empty space."""
     # build clean puzzle like an idiot
     clean_puzzle = []
     for y, row in enumerate(puzzle):
@@ -164,6 +136,8 @@ def get_clean_puzzle(puzzle, path_list):
 def is_inside(clean_puzzle, coords):
     """
     Explore to the right of a coordinate in the clean puzzle. If we hit an odd number of vertical lines, we're inside.
+    U bends are ignored, zig-zaggies are counted.
+    Learned this doing some geometry work a million years ago. Makes sense if you think about it.
 
     | = a vertical line.
     - = ignored.
@@ -178,17 +152,25 @@ def is_inside(clean_puzzle, coords):
     to_right = to_right.replace(' ', '').replace('-', '').replace('LJ', '').replace('F7', '').replace('L7', '|').replace('FJ', '|')
     return len(to_right) % 2 == 1 # if odd, inside
 
+def solve_part_2(filepath):
+    puzzle = get_puzzle(filepath)
+    solution, path_list = solve_part_1_with_extras(filepath)
+    clean_puzzle = get_clean_puzzle(puzzle, path_list)
+    counter = 0
+    for y in range(len(clean_puzzle)):
+        for x in range(len(clean_puzzle[0])):
+            if clean_puzzle[y][x] == ' ' and is_inside(clean_puzzle, (x, y)):
+                counter += 1
+    return counter
 
+# Results
 filename = 'input.txt'
+print(solve_part_1(filename)) # 6768
+print(solve_part_2(filename)) # 351
+
+# Demo of clean puzzle printing, just for kicks.
+filename = 'example3.txt'
 puzzle = get_puzzle(filename)
 solution, path_list = solve_part_1_with_extras(filename)
 clean_puzzle = get_clean_puzzle(puzzle, path_list)
 print('\n'.join(clean_puzzle))
-
-counter = 0
-for y in range(len(clean_puzzle)):
-    for x in range(len(clean_puzzle[0])):
-        if clean_puzzle[y][x] == ' ' and is_inside(clean_puzzle, (x, y)):
-            print(x, y)
-            counter += 1
-print(counter) # 351
