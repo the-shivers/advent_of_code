@@ -1,9 +1,6 @@
 # input_txt = 'advent_of_code/2024/day1/example.txt'
 input_txt = 'advent_of_code/2024/day1/input.txt'
-
-left_list = []
-right_list = []
-
+left_list, right_list = [], []
 with open(input_txt) as file:
     for line in file:
         l, r = line.split()
@@ -14,24 +11,16 @@ with open(input_txt) as file:
 left_list.sort()
 right_list.sort()
 total = 0
-
 for i in range(len(left_list)):
     total += abs(left_list[i] - right_list[i])
+print(f'Part 1: {total}')
 
-print(total)
-
-# Part Two (Could be made faster with binary search)
-sim_dict = {}
+# Part Two
+# Could be made faster with dicts and binary search
 sim_score = 0
-for i in range(len(left_list)):
-    if left_list[i] in sim_dict:
-        continue
-    sim_dict[left_list[i]] = 0
-    for j in range(len(right_list)):
-        if right_list[j] == left_list[i]:
-            sim_dict[left_list[i]] += 1
-
 for l in left_list:
-    sim_score += l * sim_dict[l]
-
-print(sim_score)
+    counter = 0
+    for r in right_list:
+        counter += 1 if l == r else 0
+    sim_score += l * counter
+print(f'Part 2: {sim_score}')
