@@ -1,3 +1,5 @@
+from collections import Counter
+
 # input_txt = 'advent_of_code/2024/day1/example.txt'
 input_txt = 'advent_of_code/2024/day1/input.txt'
 left_list, right_list = [], []
@@ -16,11 +18,9 @@ for i in range(len(left_list)):
 print(f'Part 1: {total}')
 
 # Part Two
-# Could be made faster with dicts and binary search
-sim_score = 0
-for l in left_list:
-    counter = 0
-    for r in right_list:
-        counter += 1 if l == r else 0
-    sim_score += l * counter
-print(f'Part 2: {sim_score}')
+left_counter, right_counter = Counter(left_list), Counter(right_list)
+total = 0
+for l_key, l_value in left_counter.items():
+    if l_key in right_counter:
+        total += l_value * l_key * right_counter[l_key]
+print(f'Part 2: {total}')
