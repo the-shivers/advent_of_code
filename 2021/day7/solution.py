@@ -14,8 +14,6 @@ res = 0
 for crab in crabs:
     res += abs(med-crab)
 
-print(res)
-
 pos_dict = {}
 for i in range(1, 1001):
     res = 0
