@@ -3,43 +3,55 @@ input_txt = 'advent_of_code/2024/day4/input.txt'
 with open(input_txt) as file:
     lines = [line.strip() for line in file]
 
+dirs = {
+    "u": (0, -1), # up
+    "ur": (1, -1), # up right
+    "r": (1, 0), # right
+    "dr": (1, 1), # down right
+    "d": (0, 1), # etc.
+    "dl": (-1, 1),
+    "l": (-1, 0),
+    "ul": (-1, -1)
+}
+diags = {k: v for k, v in dirs.items() if len(k) == 2}
+one_dir = {"u": (0, -1)}
+    
+def word_search(
+    pat: str, 
+    grid: list[list[str]], 
+    dirs: dict[str, tuple[int, int]]
+) -> set[tuple[tuple[int, int], str]]:
+    height, width = len(grid), len(grid[0])
+    results = set()
+    for start_y in range(height):
+        for start_x in range(width):
+            if grid[start_y][start_x] != pat[0]:
+                continue
+            for dir_str, (dx, dy) in dirs.items():
+                for i, letter in enumerate(pat):
+                    x = start_x + i * dx
+                    y = start_y + i * dy
+                    if (
+                        x < 0 or x >= width or 
+                        y < 0 or y >= height or 
+                        grid[y][x] != letter
+                    ):
+                        break
+                    if i == len(pat) - 1:
+                        results.add(((start_x, start_y), dir_str))
+    return results
+
+
 # Part 1
-dirs = set((x, y) for x in range(-1, 2) for y in range(-1, 2)) - {(0, 0)}
-count = 0
-pattern = 'XMAS'
-for start_y, line in enumerate(lines):
-    for start_x, start_chr in enumerate(line):
-        for x_dir, y_dir in dirs:
-            for i, target_letter in enumerate(pattern):
-                x = i * x_dir + start_x
-                y = i * y_dir + start_y
-                if (
-                    x < 0 or x >= len(line) or # check boundaries
-                    y < 0 or y >= len(lines) or 
-                    lines[y][x] != target_letter
-                ):
-                    break
-                count += 1 if i == len(pattern) - 1 else 0
-
-print('Part 1:', count)
-
+print("Part 1:", len(word_search('XMAS', lines, dirs)))
 
 # Part 2
-def get_a_coords(lines: list[list[str]]) -> list[tuple]:
-    coords = []
-    for y in range(1, len(lines) - 1): # avoid edges
-        for x in range(1, len(lines[0]) - 1):
-            if lines[y][x] == 'A':
-                coords.append((x, y))
-    return coords
+counter = 0
+a_coords = word_search('A', lines, one_dir)
 
-def is_xmas(a_coord: tuple, lines: list[list[str]]) -> bool:
-    x, y = a_coord
-    tl = lines[y - 1][x - 1] # top left corner
-    tr = lines[y - 1][x + 1] # top right
-    bl = lines[y + 1][x - 1] # etc.
-    br = lines[y + 1][x + 1]
-    corners = [tl, tr, bl, br]
-    return corners.count('M') == 2 and corners.count('S') == 2 and tl != br
+for (x, y), _ in a_coords:
+    if 1 <= x < len(lines[0]) - 1 and 1 <= y < len(lines) - 1: # avoid edges
+        subgrid = [line[x - 1:x + 2] for line in lines[y - 1:y + 2]]
+        counter += 1 if len(word_search('MAS', subgrid, diags)) == 2 else 0
 
-print("Part 2:", sum(is_xmas(xy, lines) for xy in get_a_coords(lines)))
+print("Part 2:", counter)
