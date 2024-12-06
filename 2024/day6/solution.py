@@ -3,10 +3,9 @@ with open('input.txt') as file:
 
 def get_guard_pos(array: list[str]) -> tuple[int, int, str]:
     for y, row in enumerate(array):
-        for symb in '^>v<':
-            if symb in row:
-                x = row.index(symb)
-                return x, y, symb
+        for x, chr in enumerate(row):
+            if chr in '^><v':
+                return x, y, chr
 
 def rotate_guard(symb: str) -> str:
     return '^>v<'[('^>v<'.index(symb) + 1) % 4]
