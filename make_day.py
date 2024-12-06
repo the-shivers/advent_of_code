@@ -14,8 +14,8 @@ def create_new_day_folder(advent_root, year, day):
 
     solution_file_path = os.path.join(day_folder, 'solution.py')
     with open(solution_file_path, 'w') as file:
-        file.write("# input_txt = 'advent_of_code/{}/day{}/example.txt'\n".format(year, day))
-        file.write("input_txt = 'advent_of_code/{}/day{}/input.txt'\n".format(year, day))
+        file.write("# input_txt = 'example.txt'\n".format(year, day))
+        file.write("input_txt = 'input.txt'\n".format(year, day))
         file.write("with open(input_txt) as file:\n")
         file.write("    lines = [line.strip() for line in file]\n")
 
