@@ -29,14 +29,14 @@ def is_obstructed(
     x: int,
     y: int,
     symb: str,
-    new_obst: tuple[int, int]
+    new_obst: tuple[int, int] # For Part 2
 ) -> bool:
     nx, ny, _ = move(x, y, symb)
     return array[ny][nx] == '#' or (new_obst and (nx, ny) == new_obst)
 
 def simulate(
     array: list[str],
-    new_obst: tuple[int, int] = None
+    new_obst: tuple[int, int] = None # For part 2
 ) -> dict[tuple[int, int], set[str]]:
     x, y, symb = get_guard_pos(lines)
     path = {(x, y): {symb}}
@@ -59,3 +59,13 @@ print("Part 1:", len(path))
 
 # Part 2
 print("Part 2:", sum(1 for x, y in path if len(simulate(lines, (x, y))) == 0))
+
+# Optimizations:
+# "Looking ahead"
+
+array_l, array_r = lines
+
+# These are our crossing-outcome lookup dictionaries. 
+array_l, array_r = {}, {}
+for i in range(len(lines)):
+    array_l[i, len(lines) // ]
