@@ -1,27 +1,22 @@
-input_txt = 'input.txt'
-with open(input_txt) as file:
-    answers = []
-    for line in file:
-        l, r = line.split(': ')
-        nums = [int(num) for num in r.strip().split()]
-        answers.append((int(l.strip()), tuple(nums)))
-
-def add(n1, n2): return n1 + n2
-def mult(n1, n2): return n1 * n2
-def concat(n1, n2): return int(str(n1) + str(n2))
-
-def recurse(target, total, nums):
-    if len(nums) == 0:
+def recurse(target, total, nums, ops):
+    if len(nums) == 0: 
         return total == target
-    elif total > target:
+    elif total > target: 
         return False
-    else:
-        return any([recurse(target, f(total, nums[0]), nums[1:]) for f in funcs])
+    else: 
+        return any(
+            [recurse(target, f(total, nums[0]), nums[1:], ops) for f in ops]
+        )
 
-funcs = (add, mult)
-print('Part 1:', sum(a[0] if recurse(a[0], a[1][0], a[1][1:]) else 0 for a in answers))
-
-funcs = (add, mult, concat)
-print('Part 2:', sum(a[0] if recurse(a[0], a[1][0], a[1][1:]) else 0 for a in answers))
-
-
+if __name__ == '__main__':
+    pt1 = pt2 = 0
+    ops1 = (lambda x, y: x + y, lambda x, y: x * y)  # +, *
+    ops2 = (*ops1, lambda x, y: int(str(x) + str(y)))  # +, *, ||
+    with open('input.txt') as file:
+        while line := file.readline():
+            target_str, numbers_str = line.strip().split(': ')
+            target = int(target_str)
+            nums = [int(n) for n in numbers_str.split()]
+            pt1 += target if recurse(target, nums[0], nums[1:], ops1) else 0
+            pt2 += target if recurse(target, nums[0], nums[1:], ops2) else 0
+    print(f'Part 1: {pt1}\nPart 2: {pt2}')
