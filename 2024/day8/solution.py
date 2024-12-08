@@ -24,13 +24,13 @@ def solve():
     pt1, pt2 = set(), set()
     for ants in antennae.values():
         for (x1, y1), (x2, y2) in combinations(ants, 2):
-            d = (x2 - x1, y2 - y1)
-            candidates = {(x1 - d[0], y1 - d[1]), (x2 + d[0], y2 + d[1])}
-            pt1.update(p for p in candidates if 0 <= p[0] < w and 0 <= p[1] < h)
+            dx, dy = (x2 - x1, y2 - y1)
+            pts = {(x1 - dx, y1 - dy), (x2 + dx, y2 + dy)}
+            pt1.update(p for p in pts if 0 <= p[0] < w and 0 <= p[1] < h)
             pt2.update(
                 [(x1, y1), (x2, y2)],
-                extrapolate((x1 - d[0], y1 - d[1]), (-d[0], -d[1]), (w, h)),
-                extrapolate((x2 + d[0], y2 + d[1]), d, (w, h))
+                extrapolate((x1 - dx, y1 - dy), (-dx, -dy), (w, h)),
+                extrapolate((x2 + dx, y2 + dy), (dx, dy), (w, h))
             )
     print(f"Part 1: {len(pt1)}")
     print(f"Part 2: {len(pt2)}")
