@@ -1,72 +1,47 @@
 input_txt = 'input.txt'
-freq_dict = {}
 with open(input_txt) as file:
+    antennae_dict = {}
     for y, line in enumerate(file):
         for x, chr in enumerate(line.strip()):
             if chr == '.':
                 continue
-            if chr in freq_dict:
-                freq_dict[chr].append((x, y))
+            if chr in antennae_dict:
+                antennae_dict[chr].append((x, y))
             else:
-                freq_dict[chr] = [(x, y)]
+                antennae_dict[chr] = [(x, y)]
 
 height = y + 1
 width = x + 1
 
-def get_antinodes(t1, t2):
-    x1, y1 = t1
-    x2, y2 = t2
-    dx = x2 - x1
-    dy = y2 - y1
-    return (x1 - dx, y1 - dy), (x2 + dx, y2 + dy)
+def is_in_bounds(pos): return 0 <= pos[0] < width and 0 <= pos[1] < height
 
-def is_in_bounds(t1):
-    x, y = t1
-    return x >= 0 and x < width and y >= 0 and y < height
-
-def get_freq_antinodes(ants):
-    antinodes = set()
-    for i in range(len(ants)):
-        for j in range(i + 1, len(ants)):
-            a1, a2 = get_antinodes(ants[i], ants[j])
-            if is_in_bounds(a1):
-                antinodes.add(a1)
-            if is_in_bounds(a2):
-                antinodes.add(a2)
-    return antinodes
- 
-antinodes = set()
-for freq, ants in freq_dict.items():
-    antinodes = antinodes | get_freq_antinodes(ants)
-
-print("Part 1:", len(antinodes))
-
-def get_all_antinodes(t1, t2):
-    antinodes = {t1, t2}
-    x1, y1 = t1
-    x2, y2 = t2
-    dx, dy = x2 - x1, y2 - y1
-    curr_x, curr_y = x1 - dx, y1 - dy
-    while curr_y < height and curr_x < width and curr_y >= 0 and curr_x >= 0:
-        antinodes.add((curr_x, curr_y))
-        curr_x -= dx
-        curr_y -= dy
-    curr_x, curr_y = x2 + dx, y2 + dy
-    while curr_y < height and curr_x < width and curr_y >= 0 and curr_x >= 0:
-        antinodes.add((curr_x, curr_y))
+def get_points_in_direction(start, dx, dy):
+    curr_x, curr_y = start
+    while is_in_bounds((curr_x, curr_y)):
+        yield (curr_x, curr_y)
         curr_x += dx
         curr_y += dy
-    return antinodes
 
-def get_all_freq_antinodes(ants):
+def get_antinodes(t1, t2, get_all=False):
+    (x1, y1), (x2, y2) = t1, t2
+    dx, dy = x2 - x1, y2 - y1
+    if not get_all:
+        points = [(x1 - dx, y1 - dy), (x2 + dx, y2 + dy)]
+        return {p for p in points if is_in_bounds(p)}
+    backwards = get_points_in_direction((x1 - dx, y1 - dy), -dx, -dy)
+    forwards = get_points_in_direction((x2 + dx, y2 + dy), dx, dy)
+    return {t1, t2} | set(backwards) | set(forwards)
+
+def get_freq_antinodes(ant_list, get_all=False):
     antinodes = set()
-    for i in range(len(ants)):
-        for j in range(i + 1, len(ants)):
-            antinodes = antinodes | get_all_antinodes(ants[i], ants[j])
+    for i in range(len(ant_list)):
+        for j in range(i + 1, len(ant_list)):
+            antinodes.update(get_antinodes(ant_list[i], ant_list[j], get_all))
     return antinodes
 
-antinodes = set()
-for freq, ants in freq_dict.items():
-    antinodes = antinodes | get_all_freq_antinodes(ants)
-
-print("Part 2:", len(antinodes))
+pt1_antinodes, pt2_antinodes = set(), set()
+for freq, ants in antennae_dict.items():
+    pt1_antinodes.update(get_freq_antinodes(ants, get_all=False))
+    pt2_antinodes.update(get_freq_antinodes(ants, get_all=True))
+print("Part 1:", len(pt1_antinodes))
+print("Part 2:", len(pt2_antinodes))
