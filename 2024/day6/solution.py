@@ -47,35 +47,42 @@ def quick_move(x, y, symb, grid, row_obs, col_obs):
             return nx + 1, y, '^'
         return 0, y, symb
 
-def simulate(grid, row_obs, col_obs, move_func):
+def simulate(grid, x, y, symb, row_obs, col_obs, move_func):
     """Advance guard until he hits an edge or cycle."""
-    x, y, symb = find_guard(grid)
-    path = defaultdict(set)
-    path[(x, y)].add(symb)
+    path = defaultdict(list)
+    path[(x, y)].append(symb)
     width, height = len(grid[0]), len(grid)
     while True:
         x, y, symb = move_func(x, y, symb, grid, row_obs, col_obs)
-        if x in (0, width - 1) or y in (0, height - 1):
-            path[(x, y)].add(symb)
-            return 'edge', path
         if symb in path[(x, y)]:
             return 'cycle', path
-        path[(x, y)].add(symb)
+        path[(x, y)].append(symb)
+        if x in (0, width - 1) or y in (0, height - 1):
+            return 'edge', path
+
+def get_prior_pos(x, y, symb):
+    prior_dict = {
+        '^': (x, y + 1, '^'), '>': (x - 1, y, '>'), 
+        'v': (x, y - 1, 'v'), '<': (x + 1, y, '<')
+    }
+    return prior_dict[symb]
 
 def solve(filename):
     with open(filename) as f:
         grid = [line.strip() for line in f]
+    x, y, symb = find_guard(grid)
     row_obs, col_obs = get_obst_maps(grid)
-    _, path = simulate(grid, row_obs, col_obs, move)
+    _, path = simulate(grid, x, y, symb, row_obs, col_obs, move)
     part1 = len(path)
-    part2 = sum(
-        simulate(
-            grid,
-            {**row_obs, y: sorted(row_obs[y] + [x])}, # add obst to row
-            {**col_obs, x: sorted(col_obs[x] + [y])}, # add obst to col
+    part2 = 0
+    for (x, y), symbs in path.items():
+        simulation = simulate(
+            grid, *get_prior_pos(x, y, symbs[0]), 
+            {**row_obs, y: sorted(row_obs[y] + [x])},
+            {**col_obs, x: sorted(col_obs[x] + [y])},
             quick_move
-        )[0] == 'cycle' for x, y in path
-    )
+        )
+        part2 += simulation[0] == 'cycle'
     print(f"Part 1: {part1}\nPart 2: {part2}")
 
 if __name__ == '__main__':
