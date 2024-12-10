@@ -1,5 +1,5 @@
 input_txt = 'example.txt'
-input_txt = 'input.txt' #6332189866718, 6353648390778
+input_txt = 'input.txt' 
 with open(input_txt) as file:
     line = [line.strip() for line in file][0]
 
