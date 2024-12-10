@@ -46,14 +46,13 @@ def expand2(s):
     pos, id = 0, 0
     for i in s:
         if is_file:
-            if int(i) > 0:  # Only create file entry if length > 0
-                files.append({"pos": pos, "id": id, "len": int(i)})
-                id += 1
+            files.append({"pos": pos, "id": id, "len": int(i)})
+            id += 1
             pos += int(i)
             is_file = False
         else:
-            if int(i) > 0:  # Only create space entry if length > 0
-                spaces.append({"pos": pos, "id": None, "len": int(i)})
+            # if int(i) > 0:  # Only create space entry if length > 0
+            spaces.append({"pos": pos, "id": None, "len": int(i)})
             pos += int(i)
             is_file = True
     return files, spaces
