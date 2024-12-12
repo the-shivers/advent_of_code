@@ -44,7 +44,7 @@ def get_continuous_sides(bounds_set):
     while bounds_set:
         # time.sleep(0.5)
         (curr_x, curr_y), (dx, dy) = curr
-        print(curr, len(bounds_set), "sides:", sides)
+        # print(curr, len(bounds_set), "sides:", sides)
         if (dx, dy) == (0, 1):
             # Crossed this boundary from above i.e. we're on bottom. Move left.
             # AAAA
@@ -167,10 +167,7 @@ for y, line in enumerate(lines):
             a, b = get_region((x, y), {(x, y)}, set(), [l[:] for l in lines])
             pt1_sides = len(b)
             pt2_sides = get_continuous_sides(b)
-            print('a', len(a), a)
-            print('b', len(b), b)
             area_coords.update({(x, y): chr for (x, y) in a})
-            print('Sides', pt2_sides)
             pt1 += len(a) * pt1_sides
             pt2 += len(a) * pt2_sides
 
