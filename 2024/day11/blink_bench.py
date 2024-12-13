@@ -73,10 +73,12 @@ def benchmark(blinks_list, multipliers):
     print("-" * 70)
     
     for multiplier in multipliers:
+        print(multiplier)
         # Create a new top-down solution for this multiplier
         top_down_solve, quick_blink = create_top_down_solution(multiplier)
         
         for num_blinks in blinks_list:
+            print(num_blinks)
             # Top-down timing
             start = time.time()
             top_result = top_down_solve(stones, num_blinks)
