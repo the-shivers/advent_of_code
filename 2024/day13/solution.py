@@ -37,7 +37,3 @@ def solve(filename):
           
 if __name__ == "__main__":
     solve('input.txt')
-
-
-
-    
