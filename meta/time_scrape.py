@@ -128,15 +128,16 @@ class AoCLeaderboardScraper:
 # Example usage
 if __name__ == "__main__":
     for year in [
-        2015,
-        2016,
-        2017,
-        2018,
-        2019,
-        2020,
-        2021,
+        # 2015,
+        # 2016,
+        # 2017,
+        # 2018,
+        # 2019,
+        # 2020,
+        # 2021,
         # 2022,
         # 2023,
+        2024
     ]:
         scraper = AoCLeaderboardScraper()
         year_data = scraper.fetch_year_data(year)

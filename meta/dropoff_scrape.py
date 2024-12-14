@@ -50,7 +50,7 @@ class AoCStatsScraper:
             logger.error(f"Error parsing stats for year {year}: {e}")
             return None
     
-    def fetch_all_years(self, start_year: int = 2015, end_year: int = 2023, delay: float = 1.0) -> List[Dict]:
+    def fetch_all_years(self, start_year: int = 2015, end_year: int = 2024, delay: float = 1.0) -> List[Dict]:
         """Fetch stats for all years in range."""
         all_stats = []
         
