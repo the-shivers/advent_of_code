@@ -1,212 +1,143 @@
-input_txt = 'input.txt'
-# input_txt = 'example.txt'
-map = {}
-instructions = []
-robot = (0, 0)
-with open(input_txt) as file:
-    for y, line in enumerate(file):
-        if len(line.strip()) == 0:
-            continue
-        if line.strip()[0] in '^>v<':
-            instructions.append(line.strip())
-        elif line.strip()[0] == '#':
-            map[y] = {}
-            for x, char in enumerate(line.strip()):
-                map[y][x] = char
-                if char == '@':
-                    robot = (x, y)
-    instructions = ''.join(instructions)
-    
 dirs = {
-    'up': (0, -1),
-    'right': (1, 0),
-    'down': (0, 1),
-    'left': (-1, 0)
+    '^': (0, -1),
+    '>': (1, 0),
+    'v': (0, 1),
+    '<': (-1, 0)
 }
 
-def print_map(map):
-    for rk, rv in map.items():
-        row_str = ''
-        for ck, cv in rv.items():
-            row_str += cv
-        print(row_str)
-
-# def move_robot(robot, dir, map):
-#     if move(robot, dir, map):
-#         robot = (robot[0] + dir[0], robot[1] + dir[1])
-#     return robot
-
-# def move(pos, dir, map):
-#     px, py = pos
-#     dx, dy = dir
-#     next = map[py+dy][px+dx]
-#     if next == '#':
-#         return False
-#     elif next == '.' or move((px+dx, py+dy), dir, map):
-#         map[py][px], map[py+dy][px+dx] = map[py+dy][px+dx], map[py][px]
-#         return True
-
-# print_map(map)
-# import time
-
-# for char in instructions:
-#     if char == '^':
-#         robot = move_robot(robot, dirs['up'], map)
-#     elif char == '>':
-#         robot = move_robot(robot, dirs['right'], map)
-#     elif char == 'v':
-#         robot = move_robot(robot, dirs['down'], map)
-#     elif char == '<':
-#         robot = move_robot(robot, dirs['left'], map)
-
-def get_gps(map):
-    gps = 0
-    for rk, rv in map.items(): # rows
-        for ck, cv in rv.items(): # columns
-            if cv == 'O':
-                gps += 100 * rk + ck
-    return gps
-
-# print(get_gps(map))
-
-def widen_map(map):
-    wide_map = {}
-    for y, row in map.items():
-        wide_map[y] = {}
-        for x, chr in row.items():
-            if chr == '#':
-                wide_map[y][2 * x] = '#'
-                wide_map[y][2 * x + 1] = '#'
-            elif chr == 'O':
-                wide_map[y][2 * x] = '['
-                wide_map[y][2 * x + 1] = ']'
-            elif chr == '.':
-                wide_map[y][2 * x] = '.'
-                wide_map[y][2 * x + 1] = '.'
-            elif chr == '@':
-                wide_map[y][2 * x] = '@'
-                wide_map[y][2 * x + 1] = '.'
-    return wide_map
-
-wide_map = widen_map(map)
-# print_map(wide_map)
-
-def l_move(pos, dir, map):
-    assert dir[1] == 0 # We should only use this for lateral moves.
-    px, py = pos
-    dx, dy = dir
-    next = map[py+dy][px+dx]
-    if next == '#':
-        return False
-    elif next == '.' or l_move((px+dx, py+dy), dir, map):
-        map[py][px], map[py+dy][px+dx] = map[py+dy][px+dx], map[py][px]
-        return True
-    
-def v_move(pos, dir, map):
-    """Moves the thing and stuff above/below it, recursively.
-    If a [ or ] is told to move, moves both of them."""
-    assert dir[1] != 0 # We should only use this for vertical moves.
-    px, py = pos
-    dx, dy = dir
-    curr = map[py][px]
-    next = map[py+dy][px+dx]
-
-    def can_move(pos, dir, map):
-        """Returns true if thing in position can move. Recursively checks.
-        If thing is a [ or ] checks fully if the whole box can move."""
+class Warehouse:
+    def __init__(self, map_dict, robot_pos, is_wide=False):
+        self.map = map_dict
+        self.robot = robot_pos
+        self.is_wide = is_wide
+        
+    @classmethod
+    def from_file(cls, filename, is_wide=False):
+        map_dict = {}
+        robot = (0, 0)
+        instructions = []
+        with open(filename) as file:
+            for y, line in enumerate(file):
+                if len(line.strip()) == 0:
+                    continue
+                if line.strip()[0] in '^>v<':
+                    instructions.append(line.strip())
+                elif line.strip()[0] == '#':
+                    map_dict[y] = {}
+                    for x, char in enumerate(line.strip()):
+                        map_dict[y][x] = char
+                        if char == '@':
+                            robot = (x, y)
+        if not is_wide:
+            return cls(map_dict, robot, is_wide), ''.join(instructions)
+        wide_map = {}
+        for y, row in map_dict.items():
+            wide_map[y] = {}
+            for x, chr in row.items():
+                if chr == '#':
+                    wide_map[y][2 * x] = '#'
+                    wide_map[y][2 * x + 1] = '#'
+                elif chr == 'O':
+                    wide_map[y][2 * x] = '['
+                    wide_map[y][2 * x + 1] = ']'
+                elif chr == '.':
+                    wide_map[y][2 * x] = '.'
+                    wide_map[y][2 * x + 1] = '.'
+                elif chr == '@':
+                    wide_map[y][2 * x] = '@'
+                    wide_map[y][2 * x + 1] = '.'
+        return cls(wide_map, (robot[0]*2, robot[1]), is_wide), ''.join(instructions)
+        
+    def h_move(self, pos, dir):
+        """Part 1 movement or part 2 horizontal movement."""
         px, py = pos
         dx, dy = dir
-        curr = map[py][px]
-        next = map[py+dy][px+dx]
+        next = self.map[py+dy][px+dx]
+        if next == '#':
+            return False
+        elif next == '.' or self.h_move((px+dx, py+dy), dir):
+            self.map[py][px], self.map[py+dy][px+dx] = self.map[py+dy][px+dx], self.map[py][px]
+            return True
+        
+    def can_v_move(self, pos, dir):
+        """Pt2 Only. Vertical moves only. Returns true if thing in position can move. 
+        Recursively checks. If thing is a [ or ] checks fully if the whole box can move."""
+        px, py = pos
+        dx, dy = dir
+        curr = self.map[py][px]
+        next = self.map[py+dy][px+dx]
+        # If we're moving the lil robot...
         if curr == '@':
             if next == '#':
                 return False
             elif next == '.':
                 return True
             elif next in '[]':
-                return can_move((px+dx, py+dy), dir, map)
-        if curr == '[':
-            x_mod = 1
-        elif curr == ']':
-            x_mod = -1
-        other_next = map[py+dy][px+dx+x_mod]
+                return self.can_v_move((px+dx, py+dy), dir) # Will check both box parts
+        # If we're moving a wide box
+        x_mod = 1 if curr == '[' else -1
+        other_next = self.map[py+dy][px+dx+x_mod]
         if next == '.' and other_next == '.':
             return True
         elif next in '[]' and other_next == '.':
-            return can_move((px+dx,py+dy), dir, map)
+            return self.can_v_move((px+dx,py+dy), dir)
         elif next == '.' and other_next in '[]':
-            return can_move((px+dx+x_mod,py+dy), dir, map)
+            return self.can_v_move((px+dx+x_mod,py+dy), dir)
         elif next in '[]' and other_next in '[]':
-            return can_move((px+dx,py+dy), dir, map) and can_move((px+dx+x_mod,py+dy), dir, map)
-        elif next == '#' or other_next == '#':
-            return False
+            return (
+                self.can_v_move((px+dx,py+dy), dir) and 
+                self.can_v_move((px+dx+x_mod,py+dy), dir)
+            )
+        return False
         
-    if next == '#':
-        return False
-    if curr == '@' and next == '.':
-        map[py][px], map[py+dy][px+dx] = map[py+dy][px+dx], map[py][px]
-        return True
-    if curr == '@' and next in '[]':
-        if can_move((px+dx,py+dy), dir, map):
-            # print('@ can move even though', next)
-            v_move((px+dx,py+dy), dir, map) # Should automatically move partner
-            map[py][px], map[py+dy][px+dx] = map[py+dy][px+dx], map[py][px]
+    def v_move(self, pos, dir):
+        """Moves the thing and stuff above/below it, recursively.
+        If a [ or ] is told to move, moves both of them."""
+        px, py = pos
+        dx, dy = dir
+        curr = self.map[py][px]
+        next = self.map[py+dy][px+dx]
+        if self.can_v_move(pos, dir):
+            if next in '[]':
+                self.v_move((px+dx, py+dy), dir)
+            self.map[py][px], self.map[py+dy][px+dx] = self.map[py+dy][px+dx], self.map[py][px]
+            if curr in '[]':
+                x_mod = 1 if curr == '[' else -1
+                if self.map[py+dy][px+dx+x_mod] in '[]':
+                    self.v_move((px+dx+x_mod, py+dy), dir)
+                self.map[py][px+x_mod], self.map[py+dy][px+dx+x_mod] = self.map[py+dy][px+dx+x_mod], self.map[py][px+x_mod]
             return True
-        else:
-            return False
-    elif curr in '[]':
-        # print('considering', curr, 'at', px, py)
-        if can_move((px,py), dir, map):
-            # print("Can move", curr, "!! Moving what's in front of curr", next, "at", px+dx,py+dy)
-            v_move((px+dx,py+dy), dir, map)
-            # print("Now we moved the ",next, "at", px+dx,py+dy, "lets move curr." )
-            if curr == '[':
-                v_move((px+dx+1,py+dy), dir, map)
-                map[py][px], map[py+dy][px+dx] = map[py+dy][px+dx], map[py][px]
-                map[py][px+1], map[py+dy][px+dx+1] = map[py+dy][px+dx+1], map[py][px+1]
-                return True
-            else:
-                v_move((px+dx-1,py+dy), dir, map)
-                map[py][px], map[py+dy][px+dx] = map[py+dy][px+dx], map[py][px]
-                map[py][px-1], map[py+dy][px+dx-1] = map[py+dy][px+dx-1], map[py][px-1]
-                return True
         return False
+        
+    def move_robot(self, dir):
+        if self.is_wide and dir[1] != 0:  # pt2 and vertical
+            success = self.v_move(self.robot, dir)
+        else:                             # pt1 or pt2 horizontal
+            success = self.h_move(self.robot, dir)
+        if success:
+            self.robot = (self.robot[0] + dir[0], self.robot[1] + dir[1])
+        
+    def get_gps(self):
+        gps = 0
+        for rk, rv in self.map.items():
+            for ck, cv in rv.items():
+                if cv in '[O':
+                    gps += 100 * rk + ck
+        return gps
     
-def move_robot2(robot, char, wide_map):
-    # print('char', char)
-    if char == '^':
-        dir = dirs['up']
-        # print('trying vmove from', robot)
-        result = v_move(robot, dirs['up'], wide_map)
-    elif char == '>':
-        dir = dirs['right']
-        # print('trying lmove from ', robot)
-        result = l_move(robot, dirs['right'], wide_map)
-    elif char == 'v':
-        dir = dirs['down']
-        # print('trying vmove from', robot)
-        result = v_move(robot, dirs['down'], wide_map)
-    elif char == '<':
-        dir = dirs['left']
-        # print('trying lmove from ', robot)
-        result = l_move(robot, dirs['left'], wide_map)
-    if result:
-        robot = (robot[0] + dir[0], robot[1] + dir[1])
-    return robot
+    def print(self):
+        for rv in self.map.values():
+            row_str = ''
+            for cv in rv.values():
+                row_str += cv
+            print(row_str)
 
-robot = (robot[0] * 2, robot[1])
-for i, char in enumerate(instructions):
-    # print(i, robot)
-    robot = move_robot2(robot, char, wide_map)
-    # print_map(wide_map)
-    # time.sleep(2)
 
-def get_gps(map):
-    gps = 0
-    for rk, rv in map.items(): # rows
-        for ck, cv in rv.items(): # columns
-            if cv in '[O':
-                gps += 100 * rk + ck
-    return gps
+def solve(filename, part=1):
+    warehouse, instructions = Warehouse.from_file(filename, is_wide=(part==2))
+    for char in instructions:
+        warehouse.move_robot(dirs[char])
+    return warehouse.get_gps()
 
-print(get_gps(wide_map))
+print("Part 1:", solve('input.txt', 1))
+print("Part 2:", solve('input.txt', 2))
