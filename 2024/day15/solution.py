@@ -46,8 +46,8 @@ def print_map(map):
 #         map[py][px], map[py+dy][px+dx] = map[py+dy][px+dx], map[py][px]
 #         return True
 
-print_map(map)
-import time
+# print_map(map)
+# import time
 
 # for char in instructions:
 #     if char == '^':
@@ -89,7 +89,7 @@ def widen_map(map):
     return wide_map
 
 wide_map = widen_map(map)
-print_map(wide_map)
+# print_map(wide_map)
 
 def l_move(pos, dir, map):
     assert dir[1] == 0 # We should only use this for lateral moves.
@@ -148,18 +148,18 @@ def v_move(pos, dir, map):
         return True
     if curr == '@' and next in '[]':
         if can_move((px+dx,py+dy), dir, map):
-            print('@ can move even though', next)
+            # print('@ can move even though', next)
             v_move((px+dx,py+dy), dir, map) # Should automatically move partner
             map[py][px], map[py+dy][px+dx] = map[py+dy][px+dx], map[py][px]
             return True
         else:
             return False
     elif curr in '[]':
-        print('considering', curr, 'at', px, py)
+        # print('considering', curr, 'at', px, py)
         if can_move((px,py), dir, map):
-            print("Can move", curr, "!! Moving what's in front of curr", next, "at", px+dx,py+dy)
+            # print("Can move", curr, "!! Moving what's in front of curr", next, "at", px+dx,py+dy)
             v_move((px+dx,py+dy), dir, map)
-            print("Now we moved the ",next, "at", px+dx,py+dy, "lets move curr." )
+            # print("Now we moved the ",next, "at", px+dx,py+dy, "lets move curr." )
             if curr == '[':
                 v_move((px+dx+1,py+dy), dir, map)
                 map[py][px], map[py+dy][px+dx] = map[py+dy][px+dx], map[py][px]
@@ -173,22 +173,22 @@ def v_move(pos, dir, map):
         return False
     
 def move_robot2(robot, char, wide_map):
-    print('char', char)
+    # print('char', char)
     if char == '^':
         dir = dirs['up']
-        print('trying vmove from', robot)
+        # print('trying vmove from', robot)
         result = v_move(robot, dirs['up'], wide_map)
     elif char == '>':
         dir = dirs['right']
-        print('trying lmove from ', robot)
+        # print('trying lmove from ', robot)
         result = l_move(robot, dirs['right'], wide_map)
     elif char == 'v':
         dir = dirs['down']
-        print('trying vmove from', robot)
+        # print('trying vmove from', robot)
         result = v_move(robot, dirs['down'], wide_map)
     elif char == '<':
         dir = dirs['left']
-        print('trying lmove from ', robot)
+        # print('trying lmove from ', robot)
         result = l_move(robot, dirs['left'], wide_map)
     if result:
         robot = (robot[0] + dir[0], robot[1] + dir[1])
@@ -196,9 +196,9 @@ def move_robot2(robot, char, wide_map):
 
 robot = (robot[0] * 2, robot[1])
 for i, char in enumerate(instructions):
-    print(i, robot)
+    # print(i, robot)
     robot = move_robot2(robot, char, wide_map)
-    print_map(wide_map)
+    # print_map(wide_map)
     # time.sleep(2)
 
 def get_gps(map):
