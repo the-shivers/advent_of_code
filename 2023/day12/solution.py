@@ -140,3 +140,142 @@ def solve_pt_2(filename):
     return total
 
 print(solve_pt_2('input.txt')) # 8475948826693
+
+from functools import cache
+
+def parse_line(line):
+    pattern, numbers = line.split()
+    numbers = tuple(map(int, numbers.split(',')))
+    return pattern, numbers
+
+def solve_line(pattern, numbers):
+    @cache
+    def dp(pos, current_group, group_index):
+        # Base case: reached end of pattern
+        if pos == len(pattern):
+            # Valid if we've used all groups and aren't in middle of group
+            if group_index == len(numbers) and current_group == 0:
+                return 1
+            # Also valid if we're on last group and have completed it
+            if group_index == len(numbers) - 1 and current_group == numbers[group_index]:
+                return 1
+            return 0
+        
+        result = 0
+        for char in ['#', '.'] if pattern[pos] == '?' else pattern[pos]:
+            if char == '#':
+                # Continue or start damaged group
+                result += dp(pos + 1, current_group + 1, group_index)
+            else:  # char == '.'
+                if current_group == 0:
+                    # No group in progress, just move forward
+                    result += dp(pos + 1, 0, group_index)
+                elif group_index < len(numbers) and current_group == numbers[group_index]:
+                    # Successfully completed a group
+                    result += dp(pos + 1, 0, group_index + 1)
+            
+        return result
+
+    return dp(0, 0, 0)
+
+def solve_part1(input_lines):
+    total = 0
+    for line in input_lines:
+        if not line.strip():
+            continue
+        pattern, numbers = parse_line(line)
+        arrangements = solve_line(pattern, numbers)
+        total += arrangements
+    return total
+
+# Read from input.txt
+with open('input.txt', 'r') as f:
+    input_lines = f.readlines()
+
+result = solve_part1(input_lines)
+print(f"Part 1 result: {result}")  # Should print 6852
+
+
+from functools import cache
+
+def parse_line(line, unfold=False):
+    pattern, numbers = line.split()
+    numbers = tuple(map(int, numbers.split(',')))
+    
+    if unfold:
+        pattern = '?'.join([pattern] * 5)
+        numbers = numbers * 5
+        
+    return pattern, numbers
+
+def solve_line(pattern, numbers):
+    @cache
+    def dp(pos, current_group, group_index):
+        # Base case: reached end of pattern
+        if pos == len(pattern):
+            if group_index == len(numbers) and current_group == 0:
+                return 1
+            if group_index == len(numbers) - 1 and current_group == numbers[group_index]:
+                return 1
+            return 0
+        
+        # Early termination checks
+        if group_index < len(numbers) and current_group > numbers[group_index]:
+            return 0
+        
+        result = 0
+        current_char = pattern[pos]
+        
+        if current_char in '.?':
+            if current_group == 0:
+                # No group in progress, just move forward
+                result += dp(pos + 1, 0, group_index)
+            elif group_index < len(numbers) and current_group == numbers[group_index]:
+                # Successfully completed a group
+                result += dp(pos + 1, 0, group_index + 1)
+                
+        if current_char in '#?':
+            # Can only continue/start group if we haven't exceeded total groups
+            if group_index < len(numbers):
+                result += dp(pos + 1, current_group + 1, group_index)
+            
+        return result
+
+    return dp(0, 0, 0)
+
+def solve_parts(input_lines):
+    # Test individual lines first
+    debug = False
+    if debug:
+        for line in input_lines:
+            if not line.strip():
+                continue
+            pattern, numbers = parse_line(line, unfold=True)
+            arrangements = solve_line(pattern, numbers)
+            print(f"Line: {line.strip()} -> {arrangements} arrangements")
+    
+    # Solve both parts
+    part1 = sum(solve_line(*parse_line(line)) for line in input_lines if line.strip())
+    part2 = sum(solve_line(*parse_line(line, unfold=True)) for line in input_lines if line.strip())
+    
+    return part1, part2
+
+# Verify with example input first
+test_input = """???.### 1,1,3
+.??..??...?##. 1,1,3
+?#?#?#?#?#?#?#? 1,3,1,6
+????.#...#... 4,1,1
+????.######..#####. 1,6,5
+?###???????? 3,2,1""".splitlines()
+
+test_part1, test_part2 = solve_parts(test_input)
+print(f"Test Part 1: {test_part1}")  # Should be 21
+print(f"Test Part 2: {test_part2}")  # Should be 525152
+
+# Now solve the actual input
+with open('input.txt', 'r') as f:
+    input_lines = f.readlines()
+
+part1, part2 = solve_parts(input_lines)
+print(f"\nPart 1 result: {part1}")  # Should be 6852
+print(f"Part 2 result: {part2}")  # Should be 8475948826693
