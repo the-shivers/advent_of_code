@@ -1,3 +1,6 @@
+import time
+start = time.time()
+
 dirs = {
     '^': (0, -1),
     '>': (1, 0),
@@ -141,3 +144,12 @@ def solve(filename, part=1):
 
 print("Part 1:", solve('input.txt', 1))
 print("Part 2:", solve('input.txt', 2))
+elapsed = time.time() - start
+
+# Format differently based on the duration
+if elapsed < 0.001:
+    print(f"Execution time: {elapsed*1000000:.2f} microseconds")
+elif elapsed < 1:
+    print(f"Execution time: {elapsed*1000:.2f} milliseconds")
+else:
+    print(f"Execution time: {elapsed:.4f} seconds")
