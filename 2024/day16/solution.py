@@ -1,155 +1,62 @@
-from collections import deque
+from collections import defaultdict
+import heapq
 
-dirs = {
-    '^': (0, -1),
-    '>': (1, 0),
-    'v': (0, 1),
-    '<': (-1, 0)
+DIRS = {
+    '^': (0, -1), 'v': (0, 1), 
+    '<': (-1, 0), '>': (1, 0)
+}
+TURNS = {
+    '^': ['<', '>'], '>': ['^', 'v'], 
+    'v': ['>', '<'], '<': ['v', '^']
 }
 
-def get_start_pos(grid):
-    for y, line in enumerate(grid):
-        for x, chr in enumerate(line):
-            if chr == 'S':
-                return (x, y)
-
-def explore_iterative(start_pos, start_dir, grid):
-    queue = deque([(start_pos, start_dir, 0)])
-    steps_so_far = {(start_pos[0], start_pos[1], start_dir): 0}
-    while queue:
-        pos, dir, curr_score = queue.popleft()
-        px, py = pos
-        dx, dy = dirs[dir]
-        # Base case (done)
-        if grid[py][px] == 'E':
+def get_costs(grid, start_states, end_pos=None, min_cost=None):
+    """Dijkstra's Algorithm from one or more start states."""
+    costs = defaultdict(lambda: float('inf'))
+    pq = [(0, *state) for state in start_states]
+    min_cost = float('inf')
+    while pq:
+        cost, x, y, facing = heapq.heappop(pq)
+        if cost >= costs[x, y, facing] or cost >= min_cost:
             continue
-        # Forward
-        if grid[py+dy][px+dx] in 'E.':
-            new_score = curr_score + 1
-            new_key = (px+dx, py+dy, dir)
-            if new_key not in steps_so_far or new_score < steps_so_far[new_key]:
-                steps_so_far[new_key] = new_score
-                queue.append(((px+dx, py+dy), dir, new_score))
-        # Turns
-        turns = []
-        if dir == '^':
-            if grid[py][px-1] == '.': turns.append('<')
-            if grid[py][px+1] == '.': turns.append('>')
-        elif dir == '>':
-            if grid[py-1][px] == '.': turns.append('^')
-            if grid[py+1][px] == '.': turns.append('v')
-        elif dir == 'v':
-            if grid[py][px+1] == '.': turns.append('>')
-            if grid[py][px-1] == '.': turns.append('<')
-        elif dir == '<':
-            if grid[py+1][px] == '.': turns.append('v')
-            if grid[py-1][px] == '.': turns.append('^')
-        for new_dir in turns:
-            new_score = curr_score + 1000
-            new_key = (px, py, new_dir)
-            if new_key not in steps_so_far or new_score < steps_so_far[new_key]:
-                steps_so_far[new_key] = new_score
-                queue.append((pos, new_dir, new_score))
-    min_score = float('inf')
-    for (x, y, d), score in steps_so_far.items():
-        if grid[y][x] == 'E':
-            min_score = min(min_score, score)
-    return min_score if min_score != float('inf') else None
+        costs[x, y, facing] = cost
+        if end_pos and (x, y) == end_pos:
+            min_cost = min(min_cost, cost)
+        # Forward move
+        dx, dy = DIRS[facing]
+        if grid[y+dy][x+dx] != '#':
+            heapq.heappush(pq, (cost + 1, x + dx, y + dy, facing))
+        # Turn moves
+        for new_facing in TURNS[facing]:
+            heapq.heappush(pq, (cost + 1000, x, y, new_facing))
+    return (costs, min_cost) if end_pos else costs
 
-input_txt = 'input.txt'
-with open(input_txt) as file:
-    grid = [list(line.strip()) for line in file]
+def solve(grid):
+    """
+    Solve both parts using bidirectional Dijkstra's algorithm.
+    1. get costs from start to all other tiles (incl. min_cost to end for part 1).
+    2. get costs from end to all other tiles
+    A tile is on optimal path if:
+        min_cost_from_start + min_cost_from_end == min_total_cost.
+    """
+    for y, row in enumerate(grid):
+        for x, c in enumerate(row):
+            if c == 'S': start_pos = (x, y)
+            elif c == 'E': end_pos = (x, y)
+    forward_costs, min_cost = get_costs(grid, [(start_pos[0], start_pos[1], '>')], end_pos)
+    print(f"Part 1: {min_cost}")
+    backward_costs = get_costs(grid, [(end_pos[0], end_pos[1], d) for d in '<v'], None, min_cost)
+    optimal_tiles = set()
+    for y in range(len(grid)):
+        for x in range(len(grid[0])):
+            if grid[y][x] != '#':
+                for dir1 in '^v<>':
+                    for dir2 in '^v<>':
+                        if forward_costs[x,y,dir1] + backward_costs[x,y,dir2] == min_cost:
+                            optimal_tiles.add((x,y))
+                            break               
+    print(f"Part 2: {len(optimal_tiles)}")
 
-start_pos = get_start_pos(grid)
-result = explore_iterative(start_pos, '>', grid)
-print("Part 1:", result)
-
-
-
-#  Part 2
-from collections import deque, defaultdict
-
-def explore_with_deque(start_pos, start_dir, grid, target_score=103512):
-    # Regular queue instead of priority queue
-    queue = deque([(start_pos, start_dir, 0)])
-    steps_so_far = defaultdict(dict)
-    steps_so_far[(start_pos[0], start_pos[1], start_dir)] = {
-        'min_score': 0,
-        'visited': {start_pos}
-    }
-    
-    while queue:
-        pos, dir, curr_score = queue.popleft()  # popleft instead of heappop
-        if curr_score > target_score:
-            continue
-        px, py = pos
-        dx, dy = dirs[dir]
-        if grid[py][px] == 'E' and curr_score == target_score:
-            continue
-        # Forward movement
-        if grid[py+dy][px+dx] in 'E.':
-            new_score = curr_score + 1
-            if new_score <= target_score:
-                new_key = (px+dx, py+dy, dir)
-                new_visited = steps_so_far[(px, py, dir)]['visited'].copy()
-                new_visited.add((px+dx, py+dy))
-                
-                if (new_key not in steps_so_far or 
-                    new_score <= steps_so_far[new_key]['min_score']):
-                    if new_key not in steps_so_far or new_score < steps_so_far[new_key]['min_score']:
-                        steps_so_far[new_key] = {
-                            'min_score': new_score,
-                            'visited': new_visited
-                        }
-                        queue.append(((px+dx, py+dy), dir, new_score))  # append instead of heappush
-                    else:  # equal scores
-                        steps_so_far[new_key]['visited'].update(new_visited)
-        
-        # Handle turns (only if resulting score wouldn't exceed target)
-        if curr_score + 1000 <= target_score:
-            turns = []
-            if dir == '^':
-                if grid[py][px-1] == '.': turns.append('<')
-                if grid[py][px+1] == '.': turns.append('>')
-            elif dir == '>':
-                if grid[py-1][px] == '.': turns.append('^')
-                if grid[py+1][px] == '.': turns.append('v')
-            elif dir == 'v':
-                if grid[py][px+1] == '.': turns.append('>')
-                if grid[py][px-1] == '.': turns.append('<')
-            elif dir == '<':
-                if grid[py+1][px] == '.': turns.append('v')
-                if grid[py-1][px] == '.': turns.append('^')
-                
-            for new_dir in turns:
-                new_score = curr_score + 1000
-                new_key = (px, py, new_dir)
-                new_visited = steps_so_far[(px, py, dir)]['visited'].copy()
-                
-                if (new_key not in steps_so_far or 
-                    new_score <= steps_so_far[new_key]['min_score']):
-                    if new_key not in steps_so_far or new_score < steps_so_far[new_key]['min_score']:
-                        steps_so_far[new_key] = {
-                            'min_score': new_score,
-                            'visited': new_visited
-                        }
-                        queue.append((pos, new_dir, new_score))  # append instead of heappush
-                    else:  # equal scores
-                        steps_so_far[new_key]['visited'].update(new_visited)
-    
-    # Collect all visited tiles from optimal paths
-    final_visited = set()
-    for (x, y, d), vals in steps_so_far.items():
-        if grid[y][x] == 'E' and vals['min_score'] == target_score:
-            final_visited.update(vals['visited'])
-    
-    return final_visited
-
-# Reading input
-input_txt = 'input.txt'
-with open(input_txt) as file:
-    grid = [list(line.strip()) for line in file]
-
-start_pos = get_start_pos(grid)
-result = explore_with_deque(start_pos, '>', grid, target_score=103512)
-print("Part 2:", len(result))
+if __name__ == "__main__":
+    grid = [list(line.strip()) for line in open('input.txt')]
+    solve(grid)
