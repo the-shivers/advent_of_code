@@ -1,10 +1,12 @@
 def get_val(state, v):
+    """For getting combo operand values."""
     if v == 4: return state['A']
     elif v == 5: return state['B']
     elif v == 6: return state['C']
     else: return v
 
 def run(state):
+    """Run program to completion."""
     while state['pos'] < len(state['P']):
         op = state['P'][state['pos']]
         val = state['P'][state['pos'] + 1]
@@ -30,6 +32,12 @@ def run(state):
     return state['O']
 
 def dfs(program, acc, pos):
+    """
+    Find self-replicating program:
+      1. Starting from rightmost target digit, increment A by up to 7.
+      2. Once digit matches, multiply A by 8 to get new digit
+      3. Repeat, backtracking if necessary.
+    """
     for i in range(8):
         val = acc + i
         state = {'A': val, 'B': 0, 'C': 0, 'P': program, 'pos': 0, 'O': []}
