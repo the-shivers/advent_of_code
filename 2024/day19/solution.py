@@ -13,8 +13,5 @@ with open('input.txt') as file:
     towels = frozenset(lines[0].split(', '))
     designs = lines[2:]
 
-pt1 = pt2 = 0
-for design in designs:
-    pt1 += 1 if get_combos(design, towels) > 0 else 0
-    pt2 += get_combos(design, towels)
-print(f"Part 1: {pt1}\nPart 2: {pt2}")
+print("Part 1:", sum(1 for d in designs if get_combos(d, towels) > 0))
+print("Part 2:", sum(get_combos(d, towels) for d in designs))
