@@ -1,8 +1,3 @@
-DIRS = {
-    '^': (0, -1), 'v': (0, 1), 
-    '<': (-1, 0), '>': (1, 0)
-}
-
 def get_path(lines, start, end):
     pos, visited = start, {start: None}
     while pos != end:
@@ -18,8 +13,7 @@ def get_path(lines, start, end):
         path[pos] = steps
         steps += 1
         pos = visited[pos]
-    return {s: p for p,s in {p: len(path)-1-s for p,s in path.items()}.items()}
-            
+    return {s: p for p,s in {p: len(path)-1-s for p,s in path.items()}.items()} 
 
 def taxicab(pos1, pos2):
     x1, y1 = pos1
