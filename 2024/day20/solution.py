@@ -25,8 +25,6 @@ def get_shortcuts(steps_coords, n, min_cut):
     for i in range(len(steps_coords) - 1):
         curr = steps_coords[i]
         for j in range(i + min_cut, len(steps_coords)):
-            if j not in steps_coords:
-                continue
             comp = steps_coords[j]
             if taxicab(curr, comp) > n or j - i - taxicab(curr, comp) < min_cut:
                 continue
