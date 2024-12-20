@@ -64,4 +64,12 @@ with open('input.txt') as f:
 print("Part 1:", ",".join(map(str, run(state))))
 
 # Part 2
-print("Part 2:", dfs(state['P'], 0, len(state['P']) - 1))
+# print("Part 2:", dfs(state['P'], 0, len(state['P']) - 1))
+
+# Fun
+state['A'] = 234234 + 1
+state['B'] = 0
+state['C'] = 0
+state['pos'] = 0
+state['O'] = []
+print("Part ?:", run(state))
