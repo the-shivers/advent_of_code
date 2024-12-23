@@ -1,10 +1,9 @@
 from collections import deque
 
 def get_next_secret(s):
-    s = (s ^ (s * 64)) % 16777216
-    s = (s ^ (s // 32)) % 16777216
-    s = (s ^ (s * 2048)) % 16777216
-    return s
+    s = s ^ s * 64 % 16777216
+    s = s ^ s // 32 % 16777216
+    return s ^ s * 2048 % 16777216
 
 with open('input.txt') as f:
     nums = [int(x) for x in f]

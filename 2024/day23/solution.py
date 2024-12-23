@@ -7,7 +7,7 @@ def part1(pairs):
         for pair2 in t_pairs:
             if pair1 == pair2:
                 continue
-            if any(s[0] == 't' for s in pair1 & pair2): # at least one t from intersection
+            if any(s[0] == 't' for s in pair1 & pair2):
                 if pair1 ^ pair2 in pairs:
                     trios.add(pair1 | pair2)
     print("Part 1:", len(trios))
@@ -23,12 +23,10 @@ def part2(pairs):
                         cluster.add(item)
     print("Part 2:", ",".join(sorted(max(clusters, key=len))))
 
-if __name__ == '__main__':
-    input_txt = 'input.txt'
-    with open(input_txt) as file:
-        pairs = set([frozenset(line.strip().split('-')) for line in file])
-    part1(pairs)
-    part2(pairs)
+with open('input.txt') as file:
+    pairs = set([frozenset(line.strip().split('-')) for line in file])
+part1(pairs)
+part2(pairs)
 
 
 
