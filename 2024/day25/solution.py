@@ -1,40 +1,19 @@
-# input_txt = 'example.txt'
-input_txt = 'input.txt'
-with open(input_txt) as file:
-    locks = [i.splitlines() for i in file.read().strip().split('\n\n')]
+with open('input.txt') as f:
+    locks = [i.splitlines() for i in f.read().strip().split('\n\n')]
 
-def raw_lock_to_clean(lock):
-    if lock[0] == '#####' and lock[-1] == '.....':
-        type = 'lock'
-    else:
-        type = 'key'
-    result = [-1, -1, -1, -1, -1]
-    new_lock = lock[:] if type == 'lock' else lock[::-1]
-    for row in new_lock:
-        for i, char in enumerate(row):
-            if char == '#':
-                result[i] += 1
-    return type, result
+def get_heights(schematic):
+    is_lock = schematic[0] == '#####'
+    rows = schematic if is_lock else schematic[::-1]
+    heights = [sum(1 for row in rows if row[i] == '#') - 1 for i in range(5)]
+    return heights, is_lock
 
-def process_raw_locks(raw_locks):
-    locks, keys = [], []
-    for lock in raw_locks:
-        processed = raw_lock_to_clean(lock)
-        if processed[0] == 'lock':
-            locks.append(processed[1])
-        else:
-            keys.append(processed[1])
-    return locks, keys
+locks_keys = [get_heights(lock) for lock in locks]
+lock_heights = [h for h, is_lock in locks_keys if is_lock]
+key_heights = [h for h, is_lock in locks_keys if not is_lock]
 
-locks, keys = process_raw_locks(locks)
-
-print(locks)
-print(keys)
-
-# Part 1
-pt1 = 0
-for l in locks:
-    for k in keys:
-        if all(l[i] + k[i] <= 5 for i in range(5)):
-            pt1 += 1
-print(pt1)
+compatible_pairs = 0
+for lock in lock_heights:
+    for key in key_heights:
+        if all(lock[i] + key[i] <= 5 for i in range(5)):
+            compatible_pairs += 1
+print(compatible_pairs)
